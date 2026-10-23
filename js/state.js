@@ -10,6 +10,7 @@ const initialState = {
   currentView: 'home', // 'home' | 'library' | 'playlists' | 'favourites'
   isSidebarOpen: false, // For responsive/mobile drawer
   isQueueOpen: false,   // Queue side drawer toggle
+  isDragOver: false,    // For drag-and-drop overlay
 
   // Library & Catalog
   items: new Map(),
@@ -24,7 +25,7 @@ const initialState = {
   repeatMode: 'all',    // 'off' | 'all' | 'one'
   shuffleEnabled: false,
 
-  // Playback Engine State (visual foundation for Phase 1)
+  // Playback Engine State (Phase 2 Active Engine)
   playback: {
     status: 'idle',     // 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'error'
     currentTrackId: null,
@@ -33,7 +34,8 @@ const initialState = {
     volume: 0.85,
     isMuted: false,
     playbackRate: 1.0,
-    isEngineAvailable: false // Explicitly false in Phase 1
+    isEngineAvailable: true,
+    error: null
   }
 };
 
@@ -81,6 +83,15 @@ export function setState(updates) {
 }
 
 /**
+ * Updates nested playback state safely and triggers subscribers.
+ * @param {object} playbackUpdates
+ */
+export function setPlaybackState(playbackUpdates) {
+  const newPlayback = { ...currentState.playback, ...playbackUpdates };
+  setState({ playback: newPlayback });
+}
+
+/**
  * Registers a listener callback triggered whenever the specified key changes.
  * @param {string} key State key to subscribe to, or '*' for all changes
  * @param {Function} callback Callback receiving (newValue, fullState)
@@ -107,6 +118,7 @@ export function reset() {
     searchQuery: '',
     filterType: 'all',
     isQueueOpen: false,
-    isSidebarOpen: false
+    isSidebarOpen: false,
+    isDragOver: false
   });
 }

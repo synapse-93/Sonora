@@ -1,12 +1,16 @@
 /**
- * Sonora — Application Orchestrator (Phase 1)
- * Coordinates UI state, views, navigation, card selection, search, queue drawer, and responsive layout.
- * Playback engine is explicitly disabled in this UI foundation phase.
+ * Sonora — Application Orchestrator (Phase 2: Real Media Playback & Local Ingestion)
+ * Coordinates UI state, views, file importing, drag-and-drop, media engine, and playback controls.
+ * Adheres strictly to ARCHITECTURE.md Section 2.1.
  */
 
-import { getState, setState, subscribe } from './state.js';
+import { getState, setState, setPlaybackState, subscribe } from './state.js';
 import { SAMPLE_MEDIA_ITEMS } from './sample-data.js';
 import { formatTime, formatBytes, debounce, escapeHtml } from './utils.js';
+import { processFiles } from './file-handler.js';
+import { mediaEngine } from './media-engine.js';
+import { playerControls } from './player-controls.js';
+import { keyboardController } from './keyboard.js';
 
 // Cached DOM Elements
 const DOM = {
@@ -18,13 +22,17 @@ const DOM = {
   badgePlaylists: document.getElementById('nav-badge-playlists'),
   badgeFavourites: document.getElementById('nav-badge-favourites'),
 
-  // Header & Search
+  // Header, Search & Ingestion
   searchInput: document.getElementById('search-input'),
   btnSearchClear: document.getElementById('btn-search-clear'),
+  btnImportMedia: document.getElementById('btn-import-media'),
+  fileInputMedia: document.getElementById('file-input-media'),
+  dragOverlay: document.getElementById('drag-overlay'),
 
   // Hero Canvas
   heroCanvas: document.getElementById('hero-canvas'),
   heroBackdrop: document.getElementById('hero-backdrop'),
+  heroArtContainer: document.getElementById('hero-art-container'),
   heroArtImg: document.getElementById('hero-art-img'),
   heroTypeBadge: document.getElementById('hero-type-badge'),
   heroFormatBadge: document.getElementById('hero-format-badge'),
@@ -33,8 +41,13 @@ const DOM = {
   heroTitle: document.getElementById('hero-title'),
   heroArtist: document.getElementById('hero-artist'),
   heroDesc: document.getElementById('hero-desc'),
+  btnHeroPlay: document.getElementById('btn-hero-play'),
   btnHeroQueue: document.getElementById('btn-hero-queue'),
   btnHeroFav: document.getElementById('btn-hero-fav'),
+
+  // Native HTML5 Media Elements
+  nativeAudio: document.getElementById('sn-native-audio'),
+  nativeVideo: document.getElementById('sn-native-video'),
 
   // Catalog Section
   catalogTitle: document.getElementById('catalog-title'),
@@ -55,13 +68,22 @@ const DOM = {
   queueHeaderCount: document.getElementById('queue-header-count'),
   playerQueueBadge: document.getElementById('player-queue-badge'),
 
-  // Bottom Player Bar Preview
+  // Bottom Player Bar
   playerThumbImg: document.getElementById('player-thumb-img'),
   playerTitle: document.getElementById('player-title'),
   playerArtist: document.getElementById('player-artist'),
   playerTimeCurrent: document.getElementById('player-time-current'),
   playerTimeDuration: document.getElementById('player-time-duration'),
   playerScrubber: document.getElementById('player-scrubber'),
+  btnPlayerPlay: document.getElementById('btn-player-play'),
+  playerPlayIcon: document.getElementById('player-play-icon'),
+  btnPlayerPrev: document.getElementById('btn-player-prev'),
+  btnPlayerNext: document.getElementById('btn-player-next'),
+  btnPlayerReplay: document.getElementById('btn-player-replay'),
+  btnPlayerSkip: document.getElementById('btn-player-skip'),
+  btnPlayerMute: document.getElementById('btn-player-mute'),
+  playerVolume: document.getElementById('player-volume'),
+  playerSpeedBtn: document.getElementById('player-speed-btn'),
   btnPlayerFav: document.getElementById('btn-player-fav'),
 
   // Backdrop
@@ -72,11 +94,10 @@ const DOM = {
  * Initializes the application.
  */
 function init() {
-  // Populate items in state from sample fixtures
+  // 1. Populate items in state from sample fixtures
   const itemsMap = new Map();
   SAMPLE_MEDIA_ITEMS.forEach(item => itemsMap.set(item.id, item));
 
-  // Initialize state with sample items and initial selection
   const initialSelectedId = SAMPLE_MEDIA_ITEMS[0]?.id || null;
   setState({
     items: itemsMap,
@@ -84,29 +105,76 @@ function init() {
     activeQueue: ['trk_01', 'trk_02', 'trk_04']
   });
 
-  // Setup UI Event Listeners
-  bindEvents();
+  // 2. Initialize Media Engine with native elements
+  mediaEngine.init({
+    audioElement: DOM.nativeAudio,
+    videoElement: DOM.nativeVideo
+  });
 
-  // Setup Reactive Subscriptions
+  // Media engine event hooks
+  mediaEngine.onTrackEnded(() => {
+    playNextTrack(true);
+  });
+
+  mediaEngine.onError((msg) => {
+    showNotification(msg, true);
+  });
+
+  // 3. Initialize Custom Player Controls
+  playerControls.init(
+    {
+      btnPlay: DOM.btnPlayerPlay,
+      btnHeroPlay: DOM.btnHeroPlay,
+      playIcon: DOM.playerPlayIcon,
+      btnPrev: DOM.btnPlayerPrev,
+      btnNext: DOM.btnPlayerNext,
+      btnReplay: DOM.btnPlayerReplay,
+      btnSkip: DOM.btnPlayerSkip,
+      scrubber: DOM.playerScrubber,
+      timeCurrent: DOM.playerTimeCurrent,
+      timeDuration: DOM.playerTimeDuration,
+      volumeSlider: DOM.playerVolume,
+      btnMute: DOM.btnPlayerMute,
+      speedBadge: DOM.playerSpeedBtn
+    },
+    mediaEngine,
+    {
+      onNext: () => playNextTrack(false),
+      onPrev: () => playPrevTrack(),
+      onPlayRequest: () => handlePlayCurrentItem()
+    }
+  );
+
+  // 4. Initialize Global Keyboard Shortcuts
+  keyboardController.init(mediaEngine, {
+    onNext: () => playNextTrack(false),
+    onPrev: () => playPrevTrack()
+  });
+
+  // 5. Setup UI Event Listeners & Drag and Drop
+  bindEvents();
+  setupDragAndDrop();
+
+  // 6. Setup Reactive Subscriptions
   setupSubscriptions();
 
-  // Initial render
+  // 7. Initial render
   updateHeroPreview(initialSelectedId);
   updatePlayerBarPreview(initialSelectedId);
   renderCatalog();
   renderQueue();
   updateBadges();
 
-  console.log('Sonora Phase 1 UI Foundation initialized successfully.');
+  console.log('Sonora Phase 2 (Real Media Playback & Local Ingestion) initialized successfully.');
 }
 
 /**
- * Binds DOM event listeners.
+ * Binds UI interactions and event listeners.
  */
 function bindEvents() {
   // Sidebar Navigation
   DOM.navButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
       const view = btn.dataset.view;
       if (view) {
         setState({ currentView: view, isSidebarOpen: false });
@@ -125,7 +193,7 @@ function bindEvents() {
     setState({ isSidebarOpen: false, isQueueOpen: false });
   });
 
-  // Global Keyboard Navigation
+  // Global Escape & Search shortcut
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       const { isSidebarOpen, isQueueOpen } = getState();
@@ -167,6 +235,19 @@ function bindEvents() {
     setState({ searchQuery: '', filterType: 'all', currentView: 'library' });
   });
 
+  // File Picker Import Button
+  DOM.btnImportMedia?.addEventListener('click', () => {
+    DOM.fileInputMedia?.click();
+  });
+
+  DOM.fileInputMedia?.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFilesSelected(e.target.files);
+      // Reset input value so same files can be re-selected if desired
+      DOM.fileInputMedia.value = '';
+    }
+  });
+
   // Hero Actions
   DOM.btnHeroQueue?.addEventListener('click', () => {
     const { selectedMediaId, activeQueue } = getState();
@@ -200,6 +281,183 @@ function bindEvents() {
   DOM.btnQueueClose?.addEventListener('click', () => {
     setState({ isQueueOpen: false });
   });
+}
+
+/**
+ * Sets up drag-and-drop file ingestion across the application.
+ */
+function setupDragAndDrop() {
+  let dragCounter = 0;
+
+  window.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dragCounter++;
+
+    if (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('Files')) {
+      DOM.dragOverlay?.classList.add('active');
+    }
+  });
+
+  window.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+  });
+
+  window.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter <= 0) {
+      dragCounter = 0;
+      DOM.dragOverlay?.classList.remove('active');
+    }
+  });
+
+  window.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    DOM.dragOverlay?.classList.remove('active');
+
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFilesSelected(e.dataTransfer.files);
+    }
+  });
+}
+
+/**
+ * Ingests files selected through picker or drag-and-drop.
+ * @param {FileList | Array<File>} files
+ */
+function handleFilesSelected(files) {
+  const { accepted, rejected } = processFiles(files);
+
+  if (accepted.length > 0) {
+    const { items, activeQueue } = getState();
+    const newItems = new Map(items);
+    const newQueue = [...activeQueue];
+
+    accepted.forEach(item => {
+      newItems.set(item.id, item);
+      if (!newQueue.includes(item.id)) {
+        newQueue.push(item.id);
+      }
+    });
+
+    setState({
+      items: newItems,
+      activeQueue: newQueue,
+      currentView: 'library'
+    });
+
+    // Automatically select and begin playing the first newly imported track
+    const firstItem = accepted[0];
+    loadAndPlayItem(firstItem.id, true);
+
+    showNotification(`Imported ${accepted.length} media file${accepted.length > 1 ? 's' : ''}!`);
+  }
+
+  if (rejected.length > 0) {
+    showNotification(rejected[0], true);
+  }
+}
+
+/**
+ * Loads a track into the media engine and optionally starts playing.
+ * @param {string} id
+ * @param {boolean} autoPlay
+ */
+async function loadAndPlayItem(id, autoPlay = false) {
+  if (!id) return;
+  const { items } = getState();
+  const item = items.get(id);
+  if (!item) return;
+
+  setState({ selectedMediaId: id });
+
+  // If item is a presentation fixture without real file buffer
+  if (!item.isLocal && !item.file) {
+    if (autoPlay) {
+      showNotification('Sample item is a presentation fixture. Click "Import" or drop local files for real audio/video playback!', false);
+    }
+    return;
+  }
+
+  // Load real media item into the engine
+  try {
+    await mediaEngine.load(item, autoPlay);
+  } catch (err) {
+    console.warn('[App] Playback error on load:', err);
+  }
+}
+
+/**
+ * Handles play request for the currently selected item.
+ */
+function handlePlayCurrentItem() {
+  const { selectedMediaId, items } = getState();
+  if (!selectedMediaId) {
+    showNotification('No media item selected. Click Import to add files.', false);
+    return;
+  }
+
+  const item = items.get(selectedMediaId);
+  if (!item) return;
+
+  if (!item.isLocal && !item.file) {
+    showNotification('Sample item is a presentation fixture. Click "Import" or drop your local audio/video files to play!', false);
+    return;
+  }
+
+  // If already loaded in engine, toggle play
+  const { playback } = getState();
+  if (playback.currentTrackId === item.id) {
+    mediaEngine.togglePlay().catch((err) => {
+      console.warn('Toggle play error:', err);
+    });
+  } else {
+    loadAndPlayItem(item.id, true);
+  }
+}
+
+/**
+ * Plays the next track in the active queue.
+ * @param {boolean} isAutoAdvance
+ */
+function playNextTrack(isAutoAdvance = false) {
+  const { activeQueue, selectedMediaId, repeatMode } = getState();
+  if (!activeQueue || activeQueue.length === 0) return;
+
+  // Repeat One handler
+  if (isAutoAdvance && repeatMode === 'one') {
+    mediaEngine.seek(0);
+    mediaEngine.play().catch(() => {});
+    return;
+  }
+
+  const currentIndex = activeQueue.indexOf(selectedMediaId);
+  const nextIndex = (currentIndex + 1) % activeQueue.length;
+  const nextTrackId = activeQueue[nextIndex];
+
+  if (nextTrackId) {
+    loadAndPlayItem(nextTrackId, true);
+  }
+}
+
+/**
+ * Plays the previous track in the active queue.
+ */
+function playPrevTrack() {
+  const { activeQueue, selectedMediaId } = getState();
+  if (!activeQueue || activeQueue.length === 0) return;
+
+  const currentIndex = activeQueue.indexOf(selectedMediaId);
+  const prevIndex = (currentIndex - 1 + activeQueue.length) % activeQueue.length;
+  const prevTrackId = activeQueue[prevIndex];
+
+  if (prevTrackId) {
+    loadAndPlayItem(prevTrackId, true);
+  }
 }
 
 /**
@@ -237,6 +495,7 @@ function setupSubscriptions() {
     updateHeroPreview(id);
     updatePlayerBarPreview(id);
     highlightSelectedCard(id);
+    renderQueueActiveItem(id);
   });
 
   // Favourites change
@@ -325,8 +584,8 @@ function renderCatalog() {
     filtered = filtered.filter(item =>
       item.title.toLowerCase().includes(q) ||
       item.artist.toLowerCase().includes(q) ||
-      item.genre.toLowerCase().includes(q) ||
-      item.format.toLowerCase().includes(q)
+      (item.genre && item.genre.toLowerCase().includes(q)) ||
+      (item.format && item.format.toLowerCase().includes(q))
     );
   }
 
@@ -367,7 +626,7 @@ function renderCatalog() {
           <div class="sn-card-thumbnail-wrap">
             <img src="${item.thumbnail}" alt="${escapeHtml(item.title)} poster" class="sn-card-thumbnail" loading="lazy">
             <div class="sn-card-play-overlay" aria-hidden="true">
-              <div class="sn-card-play-btn" data-tooltip="Playback in Phase 2">
+              <div class="sn-card-play-btn" data-tooltip="Play Media">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5 3 19 12 5 21 5 3"></polygon>
                 </svg>
@@ -376,7 +635,7 @@ function renderCatalog() {
             <span class="sn-badge ${isVideo ? 'sn-badge-video' : 'sn-badge-audio'} sn-card-type-badge">
               ${item.type.toUpperCase()}
             </span>
-            <span class="sn-card-duration-badge">${formatTime(item.duration)}</span>
+            <span class="sn-card-duration-badge">${item.duration > 0 ? formatTime(item.duration) : '--:--'}</span>
           </div>
 
           <div class="sn-card-content">
@@ -384,14 +643,14 @@ function renderCatalog() {
             <p class="sn-card-subtitle">${escapeHtml(item.artist)}</p>
 
             <div class="sn-card-footer">
-              <span>${escapeHtml(item.genre)}</span>
+              <span>${escapeHtml(item.genre || 'Media')}</span>
               <button
                 class="sn-card-fav-btn ${isFav ? 'active' : ''}"
                 data-fav-id="${item.id}"
                 aria-label="${isFav ? 'Remove from' : 'Add to'} favourites"
               >
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                 </svg>
               </button>
             </div>
@@ -403,12 +662,14 @@ function renderCatalog() {
     // Attach card click handlers
     DOM.cardGrid.querySelectorAll('.sn-media-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        // If clicking the favourite button inside the card, do not trigger card select
+        // If clicking favourite button inside the card, ignore
         if (e.target.closest('.sn-card-fav-btn')) return;
 
         const id = card.dataset.id;
         if (id) {
-          setState({ selectedMediaId: id });
+          // If clicking the play button overlay, start playing immediately
+          const isPlayBtn = Boolean(e.target.closest('.sn-card-play-btn') || e.target.closest('.sn-card-play-overlay'));
+          loadAndPlayItem(id, isPlayBtn);
         }
       });
 
@@ -416,7 +677,7 @@ function renderCatalog() {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           const id = card.dataset.id;
-          if (id) setState({ selectedMediaId: id });
+          if (id) loadAndPlayItem(id, true);
         }
       });
     });
@@ -461,21 +722,33 @@ function renderCatalogCardFavIcons() {
  */
 function updateHeroPreview(id) {
   if (!id) return;
-  const { items, favourites } = getState();
+  const { items } = getState();
   const item = items.get(id);
   if (!item) return;
 
-  // Update hero artwork & backdrop
-  DOM.heroArtImg.src = item.thumbnail;
-  DOM.heroArtImg.alt = `${item.title} artwork`;
+  const isVideo = item.type === 'video';
+
+  // Toggle video display vs image poster in hero canvas
+  if (isVideo && item.isLocal) {
+    DOM.heroArtContainer.classList.add('video-mode');
+    DOM.heroArtImg.style.display = 'none';
+    DOM.nativeVideo.style.display = 'block';
+  } else {
+    DOM.heroArtContainer.classList.remove('video-mode');
+    DOM.heroArtImg.style.display = 'block';
+    DOM.nativeVideo.style.display = 'none';
+    DOM.heroArtImg.src = item.thumbnail;
+    DOM.heroArtImg.alt = `${item.title} artwork`;
+  }
+
+  // Ambient backdrop
   DOM.heroBackdrop.style.backgroundImage = `url("${item.thumbnail}")`;
 
   // Update badges
-  const isVideo = item.type === 'video';
   DOM.heroTypeBadge.textContent = item.type.toUpperCase();
   DOM.heroTypeBadge.className = `sn-badge ${isVideo ? 'sn-badge-video' : 'sn-badge-audio'}`;
   DOM.heroFormatBadge.textContent = item.format;
-  DOM.heroDurationBadge.textContent = formatTime(item.duration);
+  DOM.heroDurationBadge.textContent = item.duration > 0 ? formatTime(item.duration) : '--:--';
   DOM.heroSizeBadge.textContent = formatBytes(item.size);
 
   // Update text
@@ -483,9 +756,9 @@ function updateHeroPreview(id) {
   DOM.heroArtist.innerHTML = `
     <span>${escapeHtml(item.artist)}</span>
     <span class="sn-text-muted">•</span>
-    <span class="sn-text-muted">${escapeHtml(item.genre)} (${item.year})</span>
+    <span class="sn-text-muted">${escapeHtml(item.genre || 'Media')} (${item.year})</span>
   `;
-  DOM.heroDesc.textContent = item.description || '';
+  DOM.heroDesc.textContent = item.description || (item.isLocal ? 'Local media file ready for high-fidelity playback.' : '');
 
   // Update favourite button in hero
   updateFavButtonStates(id);
@@ -524,9 +797,9 @@ function updatePlayerBarPreview(id) {
   DOM.playerThumbImg.alt = item.title;
   DOM.playerTitle.textContent = item.title;
   DOM.playerArtist.textContent = item.artist;
-  DOM.playerTimeDuration.textContent = formatTime(item.duration);
-  DOM.playerScrubber.max = item.duration;
-  DOM.playerScrubber.setAttribute('aria-valuemax', item.duration.toString());
+  DOM.playerTimeDuration.textContent = item.duration > 0 ? formatTime(item.duration) : '0:00';
+  DOM.playerScrubber.max = item.duration > 0 ? item.duration : 100;
+  DOM.playerScrubber.setAttribute('aria-valuemax', Math.floor(DOM.playerScrubber.max).toString());
 }
 
 /**
@@ -575,7 +848,7 @@ function renderQueue() {
         </div>
         <div class="sn-queue-info">
           <span class="sn-queue-item-title">${escapeHtml(item.title)}</span>
-          <span class="sn-queue-item-meta">${escapeHtml(item.artist)} • ${formatTime(item.duration)}</span>
+          <span class="sn-queue-item-meta">${escapeHtml(item.artist)} • ${item.duration > 0 ? formatTime(item.duration) : '--:--'}</span>
         </div>
         <button
           class="sn-queue-remove-btn"
@@ -591,12 +864,12 @@ function renderQueue() {
     `;
   }).join('');
 
-  // Queue item click to preview
+  // Queue item click to load and play
   DOM.queueBody.querySelectorAll('.sn-queue-item').forEach(el => {
     el.addEventListener('click', (e) => {
       if (e.target.closest('.sn-queue-remove-btn')) return;
       const id = el.dataset.queueId;
-      if (id) setState({ selectedMediaId: id });
+      if (id) loadAndPlayItem(id, true);
     });
   });
 
@@ -614,6 +887,15 @@ function renderQueue() {
 }
 
 /**
+ * Highlights currently active track in the queue list.
+ */
+function renderQueueActiveItem(id) {
+  DOM.queueBody.querySelectorAll('.sn-queue-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.queueId === id);
+  });
+}
+
+/**
  * Updates badge counters in sidebar navigation.
  */
 function updateBadges() {
@@ -624,9 +906,10 @@ function updateBadges() {
 
 /**
  * Displays a non-intrusive notification indicator.
+ * @param {string} msg
+ * @param {boolean} isError
  */
-function showNotification(msg) {
-  // Check if existing toast exists
+function showNotification(msg, isError = false) {
   let toast = document.querySelector('.sn-toast-alert');
   if (!toast) {
     toast = document.createElement('div');
@@ -650,12 +933,14 @@ function showNotification(msg) {
       opacity: 0;
       transform: translateY(8px);
       transition: all var(--sn-transition-normal);
+      max-width: 400px;
     `;
     document.body.appendChild(toast);
   }
 
+  const dotColor = isError ? 'var(--sn-rose-accent)' : 'var(--sn-accent-primary)';
   toast.innerHTML = `
-    <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--sn-accent-primary);"></span>
+    <span style="width: 8px; height: 8px; border-radius: 50%; background: ${dotColor}; flex-shrink: 0;"></span>
     <span>${escapeHtml(msg)}</span>
   `;
 
@@ -668,7 +953,7 @@ function showNotification(msg) {
   toast._timer = setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(8px)';
-  }, 2200);
+  }, isError ? 4000 : 2500);
 }
 
 // Bootstrap on DOMContentLoaded
