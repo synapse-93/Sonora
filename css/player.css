@@ -1,0 +1,301 @@
+/* ==========================================================================
+   Sonora — Bottom Cinematic Playback Bar
+   ========================================================================== */
+
+.sn-player-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: var(--sn-player-height);
+  background-color: var(--sn-bg-surface);
+  border-top: 1px solid var(--sn-border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--sn-space-6);
+  z-index: var(--sn-z-player);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   Left Section: Active Track Information
+   -------------------------------------------------------------------------- */
+.sn-player-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+  width: 280px;
+  min-width: 200px;
+}
+
+.sn-player-thumb {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--sn-radius-md);
+  background-color: var(--sn-bg-surface-elevated);
+  border: 1px solid var(--sn-border-subtle);
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.sn-player-thumb img,
+.sn-player-thumb svg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sn-player-track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.sn-player-track-title {
+  font-size: var(--sn-text-sm);
+  font-weight: 600;
+  color: var(--sn-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sn-player-track-artist {
+  font-size: var(--sn-text-xs);
+  color: var(--sn-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sn-player-fav-btn {
+  color: var(--sn-text-muted);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sn-radius-md);
+  flex-shrink: 0;
+}
+
+.sn-player-fav-btn:hover {
+  color: var(--sn-rose-accent);
+  background: rgba(244, 63, 94, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Center Section: Transport Controls & Scrubber Timeline
+   -------------------------------------------------------------------------- */
+.sn-player-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sn-space-1);
+  flex: 1;
+  max-width: 620px;
+}
+
+.sn-player-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+}
+
+.sn-player-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--sn-radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sn-text-secondary);
+  transition: all var(--sn-transition-fast);
+}
+
+.sn-player-btn:hover:not(:disabled) {
+  color: var(--sn-text-primary);
+  background-color: var(--sn-bg-surface-hover);
+}
+
+.sn-player-btn-play {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--sn-radius-full);
+  background: var(--sn-accent-gradient);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px var(--sn-accent-glow);
+}
+
+.sn-player-btn-play svg {
+  width: 20px;
+  height: 20px;
+  margin-left: 2px;
+}
+
+/* Visual Disabled State for Phase 1 */
+.sn-player-btn:disabled,
+.sn-player-btn-play:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: grayscale(0.5);
+}
+
+/* Scrubber Timeline Bar */
+.sn-scrubber-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+  width: 100%;
+}
+
+.sn-scrubber-time {
+  font-size: var(--sn-text-xs);
+  font-family: var(--sn-font-mono);
+  color: var(--sn-text-muted);
+  min-width: 40px;
+  text-align: center;
+}
+
+.sn-scrubber-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 20px;
+  cursor: not-allowed; /* Disabled in Phase 1 */
+}
+
+/* Custom Range Slider Styling */
+.sn-scrubber-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: var(--sn-radius-full);
+  background: var(--sn-bg-surface-hover);
+  outline: none;
+  cursor: not-allowed;
+  transition: height var(--sn-transition-fast);
+}
+
+.sn-scrubber-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--sn-accent-primary);
+  cursor: not-allowed;
+  box-shadow: 0 0 6px var(--sn-accent-glow);
+  opacity: 0.6;
+}
+
+.sn-scrubber-input::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: var(--sn-accent-primary);
+  cursor: not-allowed;
+  box-shadow: 0 0 6px var(--sn-accent-glow);
+  opacity: 0.6;
+}
+
+/* --------------------------------------------------------------------------
+   Right Section: Volume, Speed & Secondary Controls
+   -------------------------------------------------------------------------- */
+.sn-player-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sn-space-3);
+  width: 280px;
+  min-width: 200px;
+}
+
+.sn-volume-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-2);
+}
+
+.sn-volume-input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px;
+  height: 4px;
+  border-radius: var(--sn-radius-full);
+  background: var(--sn-bg-surface-hover);
+  outline: none;
+  cursor: not-allowed;
+}
+
+.sn-volume-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--sn-accent-primary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.sn-volume-input::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 50%;
+  background: var(--sn-accent-primary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.sn-speed-badge {
+  padding: 2px 6px;
+  font-size: var(--sn-text-xs);
+  font-family: var(--sn-font-mono);
+  font-weight: 600;
+  border-radius: var(--sn-radius-sm);
+  background: var(--sn-bg-surface-elevated);
+  color: var(--sn-text-secondary);
+  border: 1px solid var(--sn-border-subtle);
+  cursor: not-allowed;
+}
+
+.sn-queue-toggle-btn {
+  position: relative;
+}
+
+.sn-queue-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--sn-accent-primary);
+  box-shadow: 0 0 6px var(--sn-accent-glow);
+}
+
+/* Phase 2 Informational Banner on Hover */
+.sn-player-disabled-notice {
+  font-size: 11px;
+  color: var(--sn-amber-accent);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  padding: 2px 8px;
+  border-radius: var(--sn-radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

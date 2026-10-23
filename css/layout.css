@@ -1,0 +1,277 @@
+/* ==========================================================================
+   Sonora — Application Shell & Layout
+   ========================================================================== */
+
+#app-root {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: var(--sn-bg-base);
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   Sidebar Navigation
+   -------------------------------------------------------------------------- */
+.sn-sidebar {
+  width: var(--sn-sidebar-width);
+  min-width: var(--sn-sidebar-width);
+  height: calc(100vh - var(--sn-player-height));
+  background-color: var(--sn-bg-surface);
+  border-right: 1px solid var(--sn-border-subtle);
+  display: flex;
+  flex-direction: column;
+  z-index: var(--sn-z-sidebar);
+  transition: transform var(--sn-transition-normal), width var(--sn-transition-normal);
+  user-select: none;
+}
+
+.sn-sidebar-brand {
+  height: var(--sn-header-height);
+  padding: 0 var(--sn-space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+  border-bottom: 1px solid var(--sn-border-subtle);
+}
+
+.sn-brand-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--sn-radius-md);
+  background: var(--sn-accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--sn-shadow-glow);
+  flex-shrink: 0;
+}
+
+.sn-brand-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: #FFFFFF;
+}
+
+.sn-brand-title {
+  font-size: var(--sn-text-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, #FFFFFF 0%, #D1D5DB 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.sn-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sn-space-6) var(--sn-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-6);
+}
+
+.sn-nav-group-label {
+  padding: 0 var(--sn-space-3) var(--sn-space-2);
+  font-size: var(--sn-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sn-text-muted);
+}
+
+.sn-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-1);
+}
+
+.sn-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+  padding: var(--sn-space-2) var(--sn-space-3);
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-text-secondary);
+  font-size: var(--sn-text-sm);
+  font-weight: 500;
+  transition: all var(--sn-transition-fast);
+  position: relative;
+}
+
+.sn-nav-item:hover {
+  background-color: var(--sn-bg-surface-hover);
+  color: var(--sn-text-primary);
+}
+
+.sn-nav-item.active {
+  background-color: var(--sn-accent-subtle);
+  color: var(--sn-text-primary);
+  font-weight: 600;
+}
+
+.sn-nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 var(--sn-radius-sm) var(--sn-radius-sm) 0;
+  background: var(--sn-accent-primary);
+  box-shadow: 0 0 10px var(--sn-accent-primary);
+}
+
+.sn-nav-item svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  stroke: currentColor;
+}
+
+.sn-nav-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  font-size: var(--sn-text-xs);
+  font-weight: 600;
+  border-radius: var(--sn-radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--sn-text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   Main Workspace Region
+   -------------------------------------------------------------------------- */
+.sn-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--sn-player-height));
+  min-width: 0;
+  background-color: var(--sn-bg-base);
+  position: relative;
+}
+
+/* Header Bar */
+.sn-header {
+  height: var(--sn-header-height);
+  padding: 0 var(--sn-space-8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sn-space-4);
+  background-color: rgba(11, 12, 16, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--sn-border-subtle);
+  z-index: var(--sn-z-header);
+}
+
+.sn-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-4);
+  flex: 1;
+  max-width: 600px;
+}
+
+.sn-sidebar-toggle-btn {
+  display: none; /* Desktop default */
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sn-radius-md);
+  align-items: center;
+  justify-content: center;
+  color: var(--sn-text-secondary);
+  border: 1px solid var(--sn-border-subtle);
+}
+
+.sn-sidebar-toggle-btn:hover {
+  background-color: var(--sn-bg-surface-hover);
+  color: var(--sn-text-primary);
+}
+
+.sn-header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+}
+
+/* Scrollable Viewport */
+.sn-viewport {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sn-space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-8);
+}
+
+/* --------------------------------------------------------------------------
+   Queue Side Drawer
+   -------------------------------------------------------------------------- */
+.sn-queue-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: var(--sn-player-height);
+  width: var(--sn-queue-width);
+  background-color: var(--sn-bg-surface);
+  border-left: 1px solid var(--sn-border-subtle);
+  box-shadow: var(--sn-shadow-lg);
+  z-index: var(--sn-z-queue);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform var(--sn-transition-normal);
+}
+
+.sn-queue-drawer.open {
+  transform: translateX(0);
+}
+
+.sn-queue-header {
+  height: var(--sn-header-height);
+  padding: 0 var(--sn-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--sn-border-subtle);
+}
+
+.sn-queue-title {
+  font-size: var(--sn-text-base);
+  font-weight: 600;
+  color: var(--sn-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-2);
+}
+
+.sn-queue-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sn-space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-2);
+}
+
+/* Overlay Backdrop */
+.sn-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: var(--sn-z-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--sn-transition-normal);
+}
+
+.sn-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
