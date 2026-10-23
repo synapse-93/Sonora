@@ -1,0 +1,33 @@
+/* ==========================================================================
+   Sonora — Audio Visualizer Styling (Foundation)
+   Scheduled for active Web Audio processing in Phase 4.
+   ========================================================================== */
+
+.sn-visualizer-container {
+  width: 100%;
+  height: 240px;
+  background-color: var(--sn-bg-surface);
+  border: 1px solid var(--sn-border-subtle);
+  border-radius: var(--sn-radius-xl);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sn-visualizer-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sn-visualizer-overlay {
+  position: absolute;
+  top: var(--sn-space-3);
+  right: var(--sn-space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-2);
+  z-index: 5;
+}

@@ -1,0 +1,306 @@
+/* ==========================================================================
+   Sonora — Responsive Adaptations & Breakpoints
+   Tested at 1440px, 1024px, 768px, and 390px viewports.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Desktop Refinements (1200px - 1440px+)
+   -------------------------------------------------------------------------- */
+@media (min-width: 1440px) {
+  .sn-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  .sn-media-canvas {
+    min-height: 320px;
+    padding: var(--sn-space-10);
+  }
+
+  .sn-canvas-art {
+    width: 160px;
+    height: 160px;
+  }
+
+  .sn-canvas-title {
+    font-size: var(--sn-text-3xl);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tablet Landscape / Small Desktop (max-width: 1024px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  :root {
+    --sn-sidebar-width: 220px;
+    --sn-queue-width: 300px;
+  }
+
+  .sn-header {
+    padding: 0 var(--sn-space-5);
+  }
+
+  .sn-viewport {
+    padding: var(--sn-space-6);
+    gap: var(--sn-space-6);
+  }
+
+  .sn-media-canvas {
+    min-height: 250px;
+    padding: var(--sn-space-6);
+  }
+
+  .sn-canvas-art {
+    width: 120px;
+    height: 120px;
+  }
+
+  .sn-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--sn-space-4);
+  }
+
+  .sn-player-left {
+    width: 220px;
+  }
+
+  .sn-player-right {
+    width: 220px;
+  }
+
+  .sn-volume-input {
+    width: 60px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tablet Portrait (max-width: 768px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  /* Off-canvas Collapsible Sidebar */
+  .sn-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: var(--sn-player-height);
+    width: 260px;
+    box-shadow: var(--sn-shadow-lg);
+    transform: translateX(-100%);
+    z-index: var(--sn-z-sidebar);
+  }
+
+  .sn-sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Show Hamburger Menu Button in Header */
+  .sn-sidebar-toggle-btn {
+    display: inline-flex;
+  }
+
+  .sn-header {
+    padding: 0 var(--sn-space-4);
+  }
+
+  .sn-viewport {
+    padding: var(--sn-space-4);
+    gap: var(--sn-space-5);
+  }
+
+  .sn-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--sn-space-3);
+  }
+
+  /* Media Canvas Adaptive Layout */
+  .sn-media-canvas {
+    min-height: auto;
+    padding: var(--sn-space-5);
+  }
+
+  .sn-canvas-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sn-space-4);
+  }
+
+  .sn-canvas-art {
+    width: 100px;
+    height: 100px;
+  }
+
+  .sn-canvas-title {
+    font-size: var(--sn-text-xl);
+  }
+
+  /* Playback Bar Adaptations */
+  .sn-player-bar {
+    padding: 0 var(--sn-space-3);
+  }
+
+  .sn-player-left {
+    width: 180px;
+    min-width: 140px;
+  }
+
+  .sn-player-right {
+    width: auto;
+    min-width: auto;
+    gap: var(--sn-space-2);
+  }
+
+  .sn-volume-wrap {
+    display: none; /* Hide volume slider on mobile/tablet, keeping mute button */
+  }
+
+  .sn-speed-badge {
+    display: none;
+  }
+
+  /* Queue Drawer Responsive Overlay */
+  .sn-queue-drawer {
+    width: min(340px, 90vw);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Viewport (max-width: 480px and down to 390px/360px)
+   -------------------------------------------------------------------------- */
+@media (max-width: 480px) {
+  :root {
+    --sn-player-height: 80px;
+    --sn-header-height: 58px;
+  }
+
+  .sn-header {
+    padding: 0 var(--sn-space-3);
+    gap: var(--sn-space-2);
+  }
+
+  .sn-header-left {
+    gap: var(--sn-space-2);
+  }
+
+  .sn-search-bar {
+    height: 36px;
+    padding: 0 var(--sn-space-2);
+  }
+
+  .sn-viewport {
+    padding: var(--sn-space-3);
+    gap: var(--sn-space-4);
+  }
+
+  /* Mobile Media Canvas */
+  .sn-media-canvas {
+    padding: var(--sn-space-4);
+    border-radius: var(--sn-radius-lg);
+  }
+
+  .sn-canvas-art {
+    width: 80px;
+    height: 80px;
+  }
+
+  .sn-canvas-title {
+    font-size: var(--sn-text-lg);
+  }
+
+  .sn-canvas-actions {
+    flex-wrap: wrap;
+    gap: var(--sn-space-2);
+  }
+
+  .sn-canvas-actions .sn-btn {
+    padding: var(--sn-space-1) var(--sn-space-3);
+    font-size: var(--sn-text-xs);
+  }
+
+  /* Card Grid in Mobile */
+  .sn-card-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--sn-space-2);
+  }
+
+  .sn-card-title {
+    font-size: var(--sn-text-xs);
+  }
+
+  .sn-card-content {
+    padding: var(--sn-space-2);
+  }
+
+  /* Playback Bar Mobile Compact Design: Zero Overflow */
+  .sn-player-bar {
+    padding: 0 var(--sn-space-2);
+  }
+
+  .sn-player-left {
+    width: 120px;
+    min-width: 100px;
+    gap: var(--sn-space-2);
+  }
+
+  .sn-player-thumb {
+    width: 40px;
+    height: 40px;
+  }
+
+  .sn-player-track-title {
+    font-size: var(--sn-text-xs);
+  }
+
+  .sn-player-track-artist {
+    font-size: 10px;
+  }
+
+  .sn-player-fav-btn {
+    display: none; /* Hide favorite on mobile bar */
+  }
+
+  .sn-player-center {
+    max-width: 160px;
+  }
+
+  .sn-player-controls {
+    gap: var(--sn-space-2);
+  }
+
+  .sn-player-btn {
+    width: 28px;
+    height: 28px;
+  }
+
+  .sn-player-btn-play {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sn-player-btn-play svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .sn-scrubber-time {
+    display: none; /* Hide current/duration text on tiny mobile screens to avoid wrap */
+  }
+
+  .sn-player-right {
+    gap: var(--sn-space-1);
+  }
+
+  .sn-player-disabled-notice {
+    display: none; /* Keep bar minimal */
+  }
+
+  /* Queue Drawer Full Screen on Mobile */
+  .sn-queue-drawer {
+    width: 100vw;
+  }
+
+  /* Filter pills scrollable horizontally if needed */
+  .sn-filter-bar {
+    overflow-x: auto;
+    padding-bottom: 4px;
+    flex-wrap: nowrap;
+  }
+}
