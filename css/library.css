@@ -354,9 +354,438 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--sn-radius-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--sn-transition-fast);
 }
 
 .sn-queue-remove-btn:hover {
   color: var(--sn-rose-accent);
   background: rgba(244, 63, 94, 0.1);
 }
+
+/* --------------------------------------------------------------------------
+   Phase 3: Queue Enhancements & Reordering
+   -------------------------------------------------------------------------- */
+.sn-queue-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sn-space-2) var(--sn-space-4);
+  background-color: var(--sn-bg-surface);
+  border-bottom: 1px solid var(--sn-border-subtle);
+  font-size: var(--sn-text-xs);
+}
+
+.sn-queue-clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--sn-text-muted);
+  font-size: var(--sn-text-xs);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--sn-radius-sm);
+  transition: all var(--sn-transition-fast);
+}
+
+.sn-queue-clear-btn:hover {
+  color: var(--sn-rose-accent);
+  background: rgba(244, 63, 94, 0.1);
+}
+
+.sn-queue-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sn-queue-move-btn {
+  color: var(--sn-text-muted);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--sn-radius-xs);
+  cursor: pointer;
+  transition: all var(--sn-transition-fast);
+}
+
+.sn-queue-move-btn:hover:not(:disabled) {
+  color: var(--sn-text-primary);
+  background: var(--sn-bg-surface-hover);
+}
+
+.sn-queue-move-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Phase 3: Sort Controls in Section Header
+   -------------------------------------------------------------------------- */
+.sn-section-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+  flex-wrap: wrap;
+}
+
+.sn-sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-2);
+  background: var(--sn-bg-surface);
+  border: 1px solid var(--sn-border-subtle);
+  padding: 4px 10px;
+  border-radius: var(--sn-radius-full);
+}
+
+.sn-sort-label {
+  font-size: var(--sn-text-xs);
+  color: var(--sn-text-muted);
+  white-space: nowrap;
+}
+
+.sn-sort-select {
+  background: transparent;
+  border: none;
+  color: var(--sn-text-primary);
+  font-size: var(--sn-text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+
+.sn-sort-select option {
+  background-color: var(--sn-bg-surface-elevated);
+  color: var(--sn-text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Phase 3: Card Actions & Offline Status Badges
+   -------------------------------------------------------------------------- */
+.sn-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sn-card-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--sn-text-muted);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--sn-radius-sm);
+  cursor: pointer;
+  transition: all var(--sn-transition-fast);
+}
+
+.sn-card-action-btn:hover {
+  color: var(--sn-text-primary);
+  background: var(--sn-bg-surface-hover);
+}
+
+.sn-media-card.offline {
+  opacity: 0.75;
+}
+
+.sn-badge-offline {
+  background: rgba(244, 63, 94, 0.18);
+  color: var(--sn-rose-accent);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--sn-radius-sm);
+  cursor: pointer;
+}
+
+.sn-badge-saved {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--sn-emerald-accent);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--sn-radius-sm);
+}
+
+/* --------------------------------------------------------------------------
+   Phase 3: Playlist Views
+   -------------------------------------------------------------------------- */
+.sn-playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--sn-space-5);
+  width: 100%;
+}
+
+.sn-playlist-card {
+  background-color: var(--sn-bg-surface);
+  border: 1px solid var(--sn-border-subtle);
+  border-radius: var(--sn-radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--sn-transition-normal);
+  cursor: pointer;
+  user-select: none;
+  position: relative;
+}
+
+.sn-playlist-card:hover {
+  background-color: var(--sn-bg-surface-elevated);
+  border-color: var(--sn-border-medium);
+  transform: translateY(-3px);
+  box-shadow: var(--sn-shadow-md);
+}
+
+.sn-playlist-thumb-wrap {
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.sn-playlist-thumb-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--sn-accent-primary);
+  opacity: 0.8;
+  transition: transform var(--sn-transition-normal);
+}
+
+.sn-playlist-card:hover .sn-playlist-thumb-icon {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+.sn-playlist-card-create {
+  border: 2px dashed var(--sn-border-medium);
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  gap: var(--sn-space-3);
+  color: var(--sn-text-secondary);
+}
+
+.sn-playlist-card-create:hover {
+  border-color: var(--sn-accent-primary);
+  color: var(--sn-accent-primary);
+  background: var(--sn-accent-subtle);
+}
+
+.sn-playlist-create-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--sn-radius-full);
+  background: var(--sn-bg-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sn-playlist-info {
+  padding: var(--sn-space-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sn-playlist-name {
+  font-size: var(--sn-text-sm);
+  font-weight: 600;
+  color: var(--sn-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sn-playlist-meta {
+  font-size: var(--sn-text-xs);
+  color: var(--sn-text-muted);
+}
+
+/* Playlist Detail View */
+.sn-playlist-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-6);
+  width: 100%;
+}
+
+.sn-playlist-header-card {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sn-space-6);
+  padding: var(--sn-space-6);
+  background: linear-gradient(180deg, var(--sn-bg-surface-elevated) 0%, var(--sn-bg-surface) 100%);
+  border: 1px solid var(--sn-border-subtle);
+  border-radius: var(--sn-radius-xl);
+}
+
+.sn-playlist-detail-art {
+  width: 160px;
+  height: 160px;
+  border-radius: var(--sn-radius-lg);
+  background: linear-gradient(135deg, var(--sn-accent-primary) 0%, #4338CA 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  flex-shrink: 0;
+  box-shadow: var(--sn-shadow-lg);
+}
+
+.sn-playlist-detail-art svg {
+  width: 64px;
+  height: 64px;
+}
+
+.sn-playlist-detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-2);
+  flex: 1;
+}
+
+.sn-playlist-detail-tag {
+  font-size: var(--sn-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--sn-accent-primary);
+  text-transform: uppercase;
+}
+
+.sn-playlist-detail-title {
+  font-size: var(--sn-text-3xl);
+  font-weight: 800;
+  color: var(--sn-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.sn-playlist-detail-sub {
+  font-size: var(--sn-text-sm);
+  color: var(--sn-text-secondary);
+}
+
+.sn-playlist-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+  margin-top: var(--sn-space-2);
+  flex-wrap: wrap;
+}
+
+/* Track Table */
+.sn-track-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 4px;
+}
+
+.sn-track-table th {
+  font-size: var(--sn-text-xs);
+  color: var(--sn-text-muted);
+  font-weight: 500;
+  text-align: left;
+  padding: var(--sn-space-2) var(--sn-space-3);
+  border-bottom: 1px solid var(--sn-border-subtle);
+}
+
+.sn-track-row {
+  background: var(--sn-bg-surface);
+  border: 1px solid var(--sn-border-subtle);
+  transition: all var(--sn-transition-fast);
+  cursor: pointer;
+}
+
+.sn-track-row:hover {
+  background: var(--sn-bg-surface-elevated);
+}
+
+.sn-track-row.selected {
+  background: var(--sn-accent-subtle);
+  border-color: var(--sn-accent-primary);
+}
+
+.sn-track-cell {
+  padding: var(--sn-space-3);
+  font-size: var(--sn-text-sm);
+  vertical-align: middle;
+}
+
+.sn-track-cell:first-child {
+  border-top-left-radius: var(--sn-radius-md);
+  border-bottom-left-radius: var(--sn-radius-md);
+  width: 44px;
+  text-align: center;
+  color: var(--sn-text-muted);
+  font-family: var(--sn-font-mono);
+  font-size: var(--sn-text-xs);
+}
+
+.sn-track-cell:last-child {
+  border-top-right-radius: var(--sn-radius-md);
+  border-bottom-right-radius: var(--sn-radius-md);
+  text-align: right;
+  width: 120px;
+}
+
+.sn-track-title-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-3);
+}
+
+.sn-track-cell-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--sn-radius-xs);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sn-track-cell-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sn-track-names {
+  display: flex;
+  flex-direction: column;
+}
+
+.sn-track-name-title {
+  font-weight: 600;
+  color: var(--sn-text-primary);
+}
+
+.sn-track-name-artist {
+  font-size: var(--sn-text-xs);
+  color: var(--sn-text-secondary);
+}
+
+.sn-track-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}
+

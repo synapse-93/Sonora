@@ -7,7 +7,7 @@
 // Initial default application state
 const initialState = {
   // Navigation & View
-  currentView: 'home', // 'home' | 'library' | 'playlists' | 'favourites'
+  currentView: 'home', // 'home' | 'library' | 'playlists' | 'playlist-detail' | 'favourites' | 'recent'
   isSidebarOpen: false, // For responsive/mobile drawer
   isQueueOpen: false,   // Queue side drawer toggle
   isDragOver: false,    // For drag-and-drop overlay
@@ -16,16 +16,29 @@ const initialState = {
   items: new Map(),
   searchQuery: '',
   filterType: 'all',    // 'all' | 'audio' | 'video'
+  sortKey: 'date',      // 'date' | 'name' | 'duration' | 'size'
+  sortDir: 'desc',      // 'asc' | 'desc'
   selectedMediaId: null,
-  favourites: new Set(['trk_01', 'trk_03']), // Pre-seed a couple for demonstration
+  favourites: new Set(),
+
+  // History & Recently Played
+  history: [], // Array<{ mediaId: string, playedAt: number, playCount: number }>
+
+  // Playlists
+  playlists: new Map(), // Map<playlistId, { id, name, itemIds: string[], createdAt, updatedAt }>
+  activePlaylistId: null,
 
   // Playback Queue
-  activeQueue: ['trk_01', 'trk_02', 'trk_04'],
+  activeQueue: [],
   currentIndex: 0,
   repeatMode: 'all',    // 'off' | 'all' | 'one'
   shuffleEnabled: false,
 
-  // Playback Engine State (Phase 2 Active Engine)
+  // Modals & UI overlays
+  activeModal: null,    // null | 'create_playlist' | 'add_to_playlist' | 'rename_playlist' | 'confirm_delete'
+  modalData: null,
+
+  // Playback Engine State (Phase 2/3 Active Engine)
   playback: {
     status: 'idle',     // 'idle' | 'loading' | 'playing' | 'paused' | 'ended' | 'error'
     currentTrackId: null,

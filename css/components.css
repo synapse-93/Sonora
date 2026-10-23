@@ -406,3 +406,145 @@
   display: inline-block;
 }
 
+/* --------------------------------------------------------------------------
+   Sort Controls & Dropdown
+   -------------------------------------------------------------------------- */
+.sn-sort-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sn-space-2);
+}
+
+.sn-sort-select {
+  background-color: var(--sn-bg-surface-elevated);
+  color: var(--sn-text-secondary);
+  border: 1px solid var(--sn-border-subtle);
+  border-radius: var(--sn-radius-md);
+  padding: 6px 12px;
+  font-size: var(--sn-text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--sn-transition-fast);
+  outline: none;
+}
+
+.sn-sort-select:hover {
+  background-color: var(--sn-bg-surface-hover);
+  color: var(--sn-text-primary);
+  border-color: var(--sn-border-medium);
+}
+
+.sn-sort-select:focus-visible {
+  border-color: var(--sn-accent-primary);
+}
+
+/* --------------------------------------------------------------------------
+   Offline & Saved Status Badges
+   -------------------------------------------------------------------------- */
+.sn-badge-offline {
+  background: rgba(245, 158, 11, 0.16);
+  color: #FCD34D;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.sn-badge-saved {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6EE7B7;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   Modal Dialogs (Playlists & Re-linking)
+   -------------------------------------------------------------------------- */
+.sn-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(11, 12, 16, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: var(--sn-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sn-space-4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--sn-transition-normal);
+}
+
+.sn-modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sn-modal {
+  width: 100%;
+  max-width: 480px;
+  background-color: var(--sn-bg-surface);
+  border: 1px solid var(--sn-border-medium);
+  border-radius: var(--sn-radius-xl);
+  box-shadow: var(--sn-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: scale(0.95) translateY(10px);
+  transition: transform var(--sn-transition-normal);
+}
+
+.sn-modal-overlay.active .sn-modal {
+  transform: scale(1) translateY(0);
+}
+
+.sn-modal-header {
+  padding: var(--sn-space-5) var(--sn-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--sn-border-subtle);
+}
+
+.sn-modal-title {
+  font-size: var(--sn-text-lg);
+  font-weight: 700;
+  color: var(--sn-text-primary);
+}
+
+.sn-modal-body {
+  padding: var(--sn-space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sn-space-4);
+}
+
+.sn-modal-footer {
+  padding: var(--sn-space-4) var(--sn-space-6);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sn-space-3);
+  background-color: var(--sn-bg-surface-elevated);
+  border-top: 1px solid var(--sn-border-subtle);
+}
+
+.sn-input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--sn-radius-md);
+  background-color: var(--sn-bg-surface-elevated);
+  border: 1px solid var(--sn-border-medium);
+  color: var(--sn-text-primary);
+  font-size: var(--sn-text-sm);
+  transition: all var(--sn-transition-fast);
+}
+
+.sn-input:focus {
+  border-color: var(--sn-accent-primary);
+  box-shadow: 0 0 0 3px var(--sn-accent-subtle);
+  outline: none;
+}
+
+.sn-input::placeholder {
+  color: var(--sn-text-muted);
+}
+
+

@@ -1,7 +1,7 @@
 /**
- * Sonora — File Ingestion & Object URL Registry (Phase 2)
- * Manages local file selection, drag-and-drop validation, and object URL lifecycle.
- * Adheres strictly to ARCHITECTURE.md Section 2.4 and ADR-04.
+ * Sonora — File Ingestion & Object URL Registry (Phase 2 & 3)
+ * Manages local file selection, drag-and-drop validation, duplicate detection, re-linking, and object URL lifecycle.
+ * Adheres strictly to ARCHITECTURE.md Section 2.4, ADR-04, and Phase 3 requirements.
  */
 
 import { generateId } from './utils.js';
@@ -26,7 +26,7 @@ export const SUPPORTED_MIME_PREFIXES = ['audio/', 'video/'];
  * @param {string} mediaType
  * @returns {string} SVG Data URL
  */
-function generateLocalPosterSvg(title, mediaType) {
+export function generateLocalPosterSvg(title, mediaType) {
   const isVideo = mediaType === 'video';
   const color1 = isVideo ? '#EC4899' : '#8B5CF6';
   const color2 = isVideo ? '#8B5CF6' : '#3B82F6';
@@ -99,6 +99,36 @@ export function validateMediaFile(file) {
 }
 
 /**
+ * Finds an existing library item matching the candidate File by name, size, and timestamp.
+ * Conservative duplicate detection strategy (Section 10).
+ * @param {File} file
+ * @param {Map<string, object>} itemsMap
+ * @returns {object | null}
+ */
+export function findExistingMatch(file, itemsMap) {
+  if (!itemsMap || !file) return null;
+
+  for (const item of itemsMap.values()) {
+    if (!item.isLocal) continue;
+
+    // Strict matching on filename and exact byte size
+    const sameName = item.name === file.name;
+    const sameSize = item.size === file.size;
+
+    if (sameName && sameSize) {
+      // If timestamps match within 2 seconds (or one is missing), treat as candidate match
+      const fileModified = file.lastModified || 0;
+      const itemModified = item.lastModified || 0;
+      if (!itemModified || !fileModified || Math.abs(fileModified - itemModified) <= 2000) {
+        return item;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Creates an immutable MediaItem descriptor from a validated local File.
  * Registers the generated Object URL in ObjectUrlRegistry.
  * @param {File} file
@@ -137,40 +167,98 @@ export function createMediaItem(file) {
     file,
     url,
     isLocal: true,
-    addedAt: Date.now()
+    isOffline: false,
+    hasStoredBlob: false,
+    addedAt: Date.now(),
+    lastModified: file.lastModified || Date.now()
   };
 }
 
 /**
- * Processes an array or FileList of candidate files.
- * @param {FileList | Array<File>} fileList
- * @returns {{ accepted: Array<object>, rejected: Array<string> }}
+ * Re-links an existing offline library record with a freshly selected File.
+ * Revokes any prior URL and establishes a live Object URL.
+ * @param {object} existingItem
+ * @param {File} file
+ * @returns {object} Updated media item
  */
-export function processFiles(fileList) {
+export function relinkMediaItem(existingItem, file) {
+  revokeMediaUrl(existingItem.id);
+
+  const newUrl = URL.createObjectURL(file);
+  ObjectUrlRegistry.set(existingItem.id, newUrl);
+
+  return {
+    ...existingItem,
+    file,
+    url: newUrl,
+    isOffline: false,
+    lastModified: file.lastModified || existingItem.lastModified
+  };
+}
+
+/**
+ * Creates an Object URL from a stored IndexedDB Blob and registers it.
+ * @param {string} id
+ * @param {Blob} blob
+ * @returns {string} Object URL
+ */
+export function createBlobUrl(id, blob) {
+  revokeMediaUrl(id);
+  const url = URL.createObjectURL(blob);
+  ObjectUrlRegistry.set(id, url);
+  return url;
+}
+
+/**
+ * Processes an array or FileList of candidate files with duplicate detection and re-linking.
+ * @param {FileList | Array<File>} fileList
+ * @param {Map<string, object>} existingItemsMap
+ * @returns {{ accepted: Array<object>, relinked: Array<object>, duplicates: Array<string>, rejected: Array<string> }}
+ */
+export function processFiles(fileList, existingItemsMap = new Map()) {
   const accepted = [];
+  const relinked = [];
+  const duplicates = [];
   const rejected = [];
 
   if (!fileList || fileList.length === 0) {
-    return { accepted, rejected };
+    return { accepted, relinked, duplicates, rejected };
   }
 
   for (let i = 0; i < fileList.length; i++) {
     const file = fileList[i];
     const validation = validateMediaFile(file);
 
-    if (validation.valid) {
-      try {
-        const item = createMediaItem(file);
-        accepted.push(item);
-      } catch (err) {
-        rejected.push(`${file.name}: ${err.message}`);
-      }
-    } else {
+    if (!validation.valid) {
       rejected.push(`${file.name}: ${validation.reason}`);
+      continue;
+    }
+
+    // Check for existing matching item in library
+    const match = findExistingMatch(file, existingItemsMap);
+
+    if (match) {
+      if (match.isOffline) {
+        // Re-link offline track seamlessly!
+        const reLinkedItem = relinkMediaItem(match, file);
+        relinked.push(reLinkedItem);
+      } else {
+        // Already loaded and active
+        duplicates.push(file.name);
+      }
+      continue;
+    }
+
+    // New unique item
+    try {
+      const item = createMediaItem(file);
+      accepted.push(item);
+    } catch (err) {
+      rejected.push(`${file.name}: ${err.message}`);
     }
   }
 
-  return { accepted, rejected };
+  return { accepted, relinked, duplicates, rejected };
 }
 
 /**

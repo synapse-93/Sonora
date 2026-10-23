@@ -83,18 +83,28 @@
                 <span class="sn-nav-badge" id="nav-badge-favourites">2</span>
               </button>
             </li>
+            <li role="none">
+              <button class="sn-nav-item" id="nav-recent" data-view="recent" role="menuitem">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                <span>Recent</span>
+                <span class="sn-nav-badge" id="nav-badge-recent">0</span>
+              </button>
+            </li>
           </ul>
         </div>
 
         <div class="sn-nav-group" style="margin-top: auto;">
           <div class="sn-nav-group-label">Architecture Status</div>
-          <div style="padding: var(--sn-space-3); background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--sn-radius-md);">
-            <div style="display: flex; align-items: center; gap: 6px; font-size: var(--sn-text-xs); font-weight: 600; color: var(--sn-emerald-accent);">
-              <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sn-emerald-accent); display: inline-block; box-shadow: 0 0 8px var(--sn-emerald-accent);"></span>
-              Phase 2: Playback Active
+          <div style="padding: var(--sn-space-3); background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: var(--sn-radius-md);">
+            <div style="display: flex; align-items: center; gap: 6px; font-size: var(--sn-text-xs); font-weight: 600; color: var(--sn-accent-primary);">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--sn-accent-primary); display: inline-block; box-shadow: 0 0 8px var(--sn-accent-primary);"></span>
+              Phase 3: Library & Playlists Active
             </div>
             <div style="font-size: 11px; color: var(--sn-text-muted); margin-top: 4px; line-height: 1.4;">
-              Native audio & video engine, local file importer, and timeline seeking active.
+              IndexedDB storage, custom playlists, favourites, queue reordering, and missing file re-linking.
             </div>
           </div>
         </div>
@@ -246,11 +256,28 @@
               <p class="sn-section-subtitle" id="catalog-subtitle">Showing all available tracks</p>
             </div>
 
-            <!-- Filter Pills -->
-            <div class="sn-filter-bar" id="filter-bar" role="radiogroup" aria-label="Filter media by type">
-              <button class="sn-filter-pill active" data-filter="all" role="radio" aria-checked="true">All Media</button>
-              <button class="sn-filter-pill" data-filter="audio" role="radio" aria-checked="false">Audio</button>
-              <button class="sn-filter-pill" data-filter="video" role="radio" aria-checked="false">Video</button>
+            <!-- Header Actions: Sort & Filters -->
+            <div class="sn-section-actions" id="section-actions">
+              <!-- Sort Dropdown -->
+              <div class="sn-sort-wrap" id="sort-wrap">
+                <label for="sort-select" class="sn-sort-label">Sort:</label>
+                <select id="sort-select" class="sn-sort-select" aria-label="Sort media library">
+                  <option value="dateAdded-desc">Newest First</option>
+                  <option value="dateAdded-asc">Oldest First</option>
+                  <option value="title-asc">Title (A-Z)</option>
+                  <option value="title-desc">Title (Z-A)</option>
+                  <option value="duration-asc">Duration (Shortest)</option>
+                  <option value="duration-desc">Duration (Longest)</option>
+                  <option value="size-desc">File Size</option>
+                </select>
+              </div>
+
+              <!-- Filter Pills -->
+              <div class="sn-filter-bar" id="filter-bar" role="radiogroup" aria-label="Filter media by type">
+                <button class="sn-filter-pill active" data-filter="all" role="radio" aria-checked="true">All Media</button>
+                <button class="sn-filter-pill" data-filter="audio" role="radio" aria-checked="false">Audio</button>
+                <button class="sn-filter-pill" data-filter="video" role="radio" aria-checked="false">Video</button>
+              </div>
             </div>
           </div>
 
@@ -303,6 +330,12 @@
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
+      </div>
+
+      <!-- Queue Toolbar (Phase 3) -->
+      <div class="sn-queue-toolbar">
+        <span class="sn-text-xs sn-text-muted">Playback Queue</span>
+        <button class="sn-queue-clear-btn" id="btn-queue-clear" aria-label="Clear play queue">Clear Queue</button>
       </div>
 
       <div class="sn-queue-body" id="queue-body">
@@ -502,6 +535,11 @@
       </div>
     </footer>
 
+  <!-- Modal Dialog Container (Phase 3) -->
+  <div id="modal-container" class="sn-modal-overlay" style="display: none;" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="sn-modal" id="modal-dialog">
+      <!-- Dynamic Modal Content rendered by JavaScript -->
+    </div>
   </div>
 
   <!-- Application Bootstrap -->
